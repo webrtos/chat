@@ -1,0 +1,24 @@
+{
+  "name": "chat",
+  "version": "1.0.0",
+  "description": "WebRTOS - Live Chat",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack"
+  },
+  "devDependencies": {
+    "webpack": "^5.24.3",
+    "webpack-cli": "^4.5.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/webrtos/chat.git"
+  },
+  "keywords": ["webrtos", "live", "chat"],
+  "author": "webrtos",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/webrtos/chat/issues"
+  },
+  "homepage": "https://github.com/webrtos/chat#readme"
+}
