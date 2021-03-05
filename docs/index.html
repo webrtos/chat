@@ -8,9 +8,11 @@
 <body>
 <h1>WebRTOS - Live Chat</h1>
 <p>Copyright &copy; 2021 WebRTOS.com. All rights reserved.</p>
+<script src="lib/ipfs-0.54.2-index.min.js"></script>
 <script src="lib/chat.1.0.0.min.js"></script>
 <script>
-const chat = Chat({test: 'abcd'})
+const chat = Chat({ipfs: Ipfs})
+chat.create().then(console.log)
 </script>
 </body>
 </html>
