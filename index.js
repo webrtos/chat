@@ -44,30 +44,10 @@ async create(room) {
     //const { cid } = await node.add('Hello world!')
     //const data = await node.cat('QmQzCQn4puG4qu8PVysxZmscmQ5vT1ZXpqo7f58Uh9QfyY') // 'Hello world!'
     //console.log(data) // data[0].toString()
-    const { id } = await ipfs.id()
+    const { id } = await this.node.id()
     this.id = id
     return {room: this.room, repo: this.repo, id: id}
 }
-
-
-
-//await ipfs.swarm.connect(addr)
-//await ipfs.swarm.peers()
-//await ipfs.pubsub.unsubscribe(topic)
-/*
-await ipfs.pubsub.subscribe(nextTopic, msg => {
-      const from = msg.from
-      const seqno = uint8ArrayToString(msg.seqno, 'base16')
-      if (from === peerId) return log(`Ignoring message ${seqno} from self`)
-      log(`Message ${seqno} from ${from}:`)
-      try {
-        log(JSON.stringify(uint8ArrayToString(msg.data), null, 2))
-      } catch (_) {
-        log(uint8ArrayToString(msg.data, 'base16'))
-      }
-    })
-*/
-
 
 }
 
