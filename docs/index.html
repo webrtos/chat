@@ -19,6 +19,8 @@ s.forEach(p => console.log(p.peer.toString()))
 */
 /*
 await chat.node.pubsub.subscribe('test', msg => {
+    console.log('same user:', (msg.from === chat.id))
+    //if (msg.from === chat.id) return;
     console.log(msg.from, '>>', new TextDecoder().decode(msg.data))
 })
 */
