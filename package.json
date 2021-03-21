@@ -14,7 +14,11 @@
     "type": "git",
     "url": "git+https://github.com/webrtos/chat.git"
   },
-  "keywords": ["webrtos", "live", "chat"],
+  "keywords": [
+    "webrtos",
+    "live",
+    "chat"
+  ],
   "author": "webrtos",
   "license": "MIT",
   "bugs": {

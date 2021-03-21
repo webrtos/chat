@@ -13,6 +13,16 @@
 <script>
 const chat = Chat({ipfs: Ipfs})
 chat.create().then(console.log)
+/*
+const s = await chat.node.swarm.peers()
+s.forEach(p => console.log(p.peer.toString()))
+*/
+/*
+await chat.node.pubsub.subscribe('test', msg => {
+    console.log(msg.from, '>>', new TextDecoder().decode(msg.data))
+})
+*/
+//await chat.node.pubsub.publish('test', 'msg')
 </script>
 </body>
 </html>
