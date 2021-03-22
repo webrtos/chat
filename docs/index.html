@@ -7,11 +7,14 @@
 </head>
 <body>
 <h1>WebRTOS - Live Chat</h1>
+<form>
+    <input type="text">
+</form>
 <p>Copyright &copy; 2021 WebRTOS.com. All rights reserved.</p>
 <script src="lib/ipfs-0.54.2-index.min.js"></script>
 <script src="lib/chat.1.0.0.min.js"></script>
 <script>
-const chat = Chat({ipfs: Ipfs})
+const chat = Chat(Ipfs)
 chat.create().then(console.log)
 /*
 const s = await chat.node.swarm.peers()

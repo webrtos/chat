@@ -1,4 +1,3 @@
-// https://github.com/ipfs/js-ipfs/tree/master/docs/core-api
 // https://github.com/ipfs/js-ipfs/tree/master/examples
 // https://www.jsdelivr.com/package/npm/ipfs
 // https://cdnjs.com/libraries/ipfs
@@ -11,82 +10,48 @@
 const lib = {
 
 rand58: len => String.fromCharCode.apply(null, window.crypto.getRandomValues(new Uint8Array(len)).map(x => '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'.charCodeAt(x % 58))),
+generateKey: () => window.crypto.subtle.generateKey({name: 'ECDH', namedCurve: 'P-384'}, false, ['deriveBits']),
+deriveBits: (privateKey, publicKey) => window.crypto.subtle.deriveBits({name: 'ECDH', namedCurve: 'P-384', public: publicKey}, privateKey, 256)
 
 }
 
 class chat {
 
-constructor(opt) {
-    this.opt = opt
+constructor(ipfs) {
+    if (!(typeof ipfs === 'object' && ipfs && 'create' in ipfs && typeof ipfs.create === 'function')) throw new Error('invalid Ipfs object')
+    this.ipfs = ipfs
     if (npm_package_name)    this.name    = npm_package_name
     if (npm_package_version) this.version = npm_package_version
     if (npm_package_date)    this.date    = npm_package_date
 }
 
-async create(room) {
-    this.room = typeof room === 'string' ? room : lib.rand58(20) //'QmQzCQn4puG4qu8PVysxZmscmQ5vT1ZXpqo7f58Uh9QfyY' // 46
-    this.repo = lib.rand58(12) // ipfs-' + Math.random()
-    console.log(this)
-    this.node = await this.opt.ipfs.create({
-        repo: this.repo, 
-        EXPERIMENTAL: {pubsub: true},
-        /*
-        config: {
-            Addresses: {
-                Swarm: [
-                    '/dns4/star-signal.cloud.ipfs.team/tcp/443/wss/p2p-webrtc-star/ipfs/' + this.room
-                ]
-            }
-        }
-        */
-    })
+async create(repo) {
+    this.repo = typeof repo === 'string' && repo.trim().length === 12 ? repo.trim() : lib.rand58(12)
+    this.node = await this.ipfs.create({repo: this.repo})
     //const status = this.node.isOnline() ? 'online' : 'offline'
-    //const { cid } = await node.add('Hello world!')
-    //const data = await node.cat('QmQzCQn4puG4qu8PVysxZmscmQ5vT1ZXpqo7f58Uh9QfyY') // 'Hello world!'
+    //const { cid } = await this.node.add('Hello world!')
+    //const data = await this.node.cat('QmQzCQn4puG4qu8PVysxZmscmQ5vT1ZXpqo7f58Uh9QfyY') // 'Hello world!'
     //console.log(data) // data[0].toString()
     const { id } = await this.node.id()
     this.id = id
-    return {room: this.room, repo: this.repo, id: id}
+    return {repo: this.repo, id: id}
 }
+
+subscribe(topic, cb) {
+    return this.node.pubsub.subscribe(topic, msg => cb(msg.from, new TextDecoder().decode(msg.data)))
+}
+
+unsubscribe(topic) {
+    return this.node.pubsub.unsubscribe(topic)
+}
+
+publish(topic, data) {
+    return this.node.pubsub.publish(topic, data)
+}
+
 
 }
 
 module.exports = {
-    Chat: opt => new chat(opt)
+    Chat: ipfs => new chat(ipfs)
 }
-
-// (async () => { for await (const data of chat.node.cat('QmQzCQn4puG4qu8PVysxZmscmQ5vT1ZXpqo7f58Uh9QfyY') ) console.log(data.toString()) } )()
-
-/*
-{
-        repo: this.repo, // this.node.repo.stat().then(console.log) - repoPath
-        EXPERIMENTAL: {pubsub: true},
-        /*
-        init: {algorithm: 'ed25519'},
-        config: {
-            Addresses: {
-                Swarm: [
-                    '/dns4/star-signal.cloud.ipfs.team/tcp/443/wss/p2p-webrtc-star/ipfs/' + room.id,
-                // This is a public webrtc-star server
-                '/dns4/wrtc-star1.par.dwebops.pub/tcp/443/wss/p2p-webrtc-star',
-                '/dns4/wrtc-star2.sjc.dwebops.pub/tcp/443/wss/p2p-webrtc-star',
-                '/ip4/127.0.0.1/tcp/13579/wss/p2p-webrtc-star'
-              ]
-            },
-            // If you want to connect to the public bootstrap nodes, remove the next line
-            Bootstrap: []
-        },
-        libp2p: {
-            config: {
-              transport: {
-                // This is added for local demo!
-                // In a production environment the default filter should be used
-                // where only DNS + WSS addresses will be dialed by websockets in the browser.
-                [transportKey]: {
-                  filter: filters.all
-                }
-              }
-            }
-        }
-    }
-*/

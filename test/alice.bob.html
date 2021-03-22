@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Alice - Bob</title>
+<meta charset="utf-8">
+</head>
+<body>
+<script>
+async function deriveSharedSecret(privateKey, publicKey) {
+    return await window.crypto.subtle.deriveBits(
+      {
+        name: "ECDH",
+        namedCurve: "P-384",
+        public: publicKey
+      },
+      privateKey,
+      256
+    )
+    //const buffer = new Uint8Array(sharedSecret, 0, 5);
+    //sharedSecret.byteLength
+}
+// Generate 2 ECDH key pairs: one for Alice and one for Bob
+// In more normal usage, they would generate their key pairs
+// separately and exchange public keys securely
+const generateAlicesKeyPair = window.crypto.subtle.generateKey({name: "ECDH", namedCurve: "P-384"}, false, ["deriveBits"])
+const generateBobsKeyPair   = window.crypto.subtle.generateKey({name: "ECDH", namedCurve: "P-384"}, false, ["deriveBits"])
+
+Promise.all([generateAlicesKeyPair, generateBobsKeyPair]).then(async values => {
+    const alicesKeyPair = values[0]
+    const bobsKeyPair = values[1]
+
+    // Alice then generates a secret using her private key and Bob's public key.
+    // Bob could generate the same secret using his private key and Alice's public key.
+    const sh1 = await deriveSharedSecret(alicesKeyPair.privateKey, bobsKeyPair.publicKey)
+    const sh2 = await deriveSharedSecret(bobsKeyPair.privateKey, alicesKeyPair.publicKey)
+
+    // sh1 === sh2 ??
+    console.log('sh1:', sh1.byteLength, new Uint8Array(sh1)) // , sh1.byteOffset, sh1.byteLength
+    console.log('sh2:', sh2.byteLength, new Uint8Array(sh2)) // , sh2.byteOffset, sh2.byteLength
+})
+
+</script>
+</body>
+</html>
