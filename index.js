@@ -26,7 +26,7 @@ constructor(ipfs) {
 }
 
 async create(repo) {
-    this.repo = typeof repo === 'string' && repo.trim().length === 12 ? repo.trim() : lib.rand58(12)
+    this.repo = typeof repo === 'string' && repo.trim().length === 16 ? repo.trim() : lib.rand58(16)
     this.node = await this.ipfs.create({repo: this.repo})
     //const status = this.node.isOnline() ? 'online' : 'offline'
     //const { cid } = await this.node.add('Hello world!')
@@ -47,6 +47,10 @@ unsubscribe(topic) {
 
 publish(topic, data) {
     return this.node.pubsub.publish(topic, data)
+}
+
+delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms))
 }
 
 

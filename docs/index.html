@@ -4,25 +4,109 @@
 <title>Live Chat</title>
 <meta charset="utf-8">
 <meta name="description" content="WebRTOS - Live Chat">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+html, body {
+    margin: 0;
+    height: 100%;
+}
+body {
+    text-align: center;
+    background-color: silver;
+}
+#loading, #main { display: none; }
+#chat {
+    width: 80%;
+    height: 70%;
+    display: inline-block;
+    border: 1px solid black;
+    background-color: white;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    overflow-wrap: break-word;
+    text-align: left;
+}
+#list {
+    width: 18%;
+    height: 70%;
+    border: 1px solid black;
+    font-size: large;
+}
+</style>
 </head>
 <body>
 <h1>WebRTOS - Live Chat</h1>
-<form onsubmit="return init.call(this)" action="javascript: void(0)">
-    <input type="text">
+<form id="init" onsubmit="return fc.init.call(this)" action="javascript: void(0)">
+<input type="text" name="user" placeholder="Username" autofocus required pattern="[A-Z][a-zA-Z0-9]{1,16}" oninvalid="setCustomValidity('First character must be capital case')" oninput="setCustomValidity('')" style="width: 200px"><br><br>
 </form>
+<div id="loading">Loading ...</div>
+<div id="main">
+<div id="chat"></div><select id="list" size="15" onclick="fc.select.call(this)"></select>
+<form id="send" onsubmit="return fc.send.call(this)" action="javascript: void(0)">
+<input type="text" name="msg" disabled></input><input type="submit" value="Send" disabled></input>
+</form>
+</div>
 <p>Copyright &copy; 2021 WebRTOS.com. All rights reserved.</p>
 <script src="lib/ipfs-0.54.2-index.min.js"></script>
 <script src="lib/chat.1.0.0.min.js"></script>
 <script>
-async function init() {
-    const chat = Chat(Ipfs)
-    const room = await chat.create()
-    console.log(room)
+let repo = new URLSearchParams(window.location.search).get('repo')
+if (repo) repo = repo.trim()
+if (repo && repo.length === 16) document.getElementById('init').innerHTML += '<button onclick="this.form.submit()">Join Room</button><br>or<br>'
+document.getElementById('init').innerHTML += '<button onclick="repo=null;this.form.submit()">Create new Room</button>'
+const room = {list: {}} // global
+const fc = { // functions list:
+init: async function () {
+    this.style.display = 'none'
+    document.getElementById('loading').style.display = 'block'
+    room.chat = Chat(Ipfs)
+    Object.assign(room, await room.chat.create(repo))
+    room.list[room.id] = this.user.value
+    fc.addUser(this.user.value)
+    room.url = window.location.origin + window.location.pathname + '?repo=' + room.repo;
+    fc.addMsg('Room URL: <a href="' + room.url + '" target="_blank">' + room.url + '</a>')
+    room.user = this.user.value
+    console.log('fc.init() room:', room)
+    await room.chat.subscribe('msg', fc.onMsg)
+    await room.chat.publish('msg', JSON.stringify({join: room.user}))
+    document.getElementById('loading').style.display = 'none'
+    document.getElementById('main').style.display = 'block'
     return false
+},
+onMsg: function (id, data) { // on user broadcast msg
+    console.log('fc.onMsg():', id, data)
+    if (id === room.id) return // from same user, skip
+    try { data = JSON.parse(data) } catch (err) { return console.error('fc.onMsg():', err) }
+    if ('join' in data) { // user join
+        const exist = (id in room.list) // check if user exists
+        const check = typeof data.join === 'string' ? data.join.match(/[A-Z][a-zA-Z0-9]{1,16}/) : false
+        room.list[id] = check && check[0] === data.join ? data.join + '.' + id.substr(0, 4) : '{' + id.substr(0, 4) + '}'
+        if (exist) {
+            // TODO: update username in select.option list
+        } else {
+            fc.addMsg('<b>' + room.list[id] + '</b> has joined.')
+            fc.addUser(room.list[id])
+        }
+    }
+},
+addUser: user => {
+    const opt = document.createElement('option')
+    opt.text = user
+    if (user === room.user) {
+        opt.style.color = 'blue'
+        opt.style.fontWeight = 'bold'
+    }
+    // TODO: sort
+    document.getElementById('list').add(opt)
+},
+addMsg: msg => {
+    document.getElementById('chat').innerHTML += msg + '<br>'
 }
+}
+
 /*
-const s = await chat.node.swarm.peers()
-s.forEach(p => console.log(p.peer.toString()))
+const x = await room.chat.node.swarm.peers(); x.forEach(p => console.log(p.peer.toString()));
+room.chat.publish('msg', JSON.stringify({test: '1111'})).then(console.log);
 */
 /*
 await chat.node.pubsub.subscribe('test', msg => {
